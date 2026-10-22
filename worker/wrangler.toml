@@ -1,0 +1,11 @@
+name = "terra-live"
+main = "index.js"
+compatibility_date = "2026-10-01"
+workers_dev = true
+
+[[kv_namespaces]]
+binding = "DATA"
+id = "1a4110a6da1c4641a3a52480b0d1a3e5"
+
+[triggers]
+crons = ["*/10 * * * *"]
