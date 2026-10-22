@@ -19,7 +19,7 @@ privacy: { ru: `
 <li>NASA GIBS — снимки Земли и снежный покров; Live Cloud Maps / EUMETSAT — облака; CelesTrak — орбиты спутников; GDACS — тропические циклоны (запросы без данных о вас).</li>
 <li>Издания новостей — их открытые RSS-ленты (запрос ленты, без данных о вас); сайты мест отдыха — их значки (favicon).</li>
 <li>Дорожные службы штатов (Caltrans и системы 511) — снимки дорожных камер загружаются прямо с их серверов, когда вы открываете камеру, как обычная веб-страница: сервер видит ваш IP-адрес и больше ничего.</li>
-<li>GitHub (raw.githubusercontent.com) — файлы с закрытиями дорог и списком камер, которые готовит Terra Live; запрос файла без данных о вас.</li>
+<li>Cloudflare (terra-live.terra-live.workers.dev) и запасной GitHub (raw.githubusercontent.com) — файлы, которые готовит Terra Live: закрытия дорог, список камер, карта облаков, орбиты спутников; запрос файла без данных о вас.</li>
 </ul>
 <p>Каждый сервис получает только то, что нужно для ответа на запрос, и действует по собственной политике конфиденциальности.</p>
 <h4>Ссылки</h4>
@@ -47,7 +47,7 @@ en: `
 <li>NASA GIBS — Earth imagery and snow cover; Live Cloud Maps / EUMETSAT — clouds; CelesTrak — satellite orbits; GDACS — tropical cyclones (requests carry no data about you).</li>
 <li>News publishers — their public RSS feeds (a feed request, nothing about you); websites of places to stop — their icons (favicons).</li>
 <li>State transportation agencies (Caltrans and 511 systems) — traffic camera pictures load directly from their servers when you open a camera, like any web page: the server sees your IP address and nothing else.</li>
-<li>GitHub (raw.githubusercontent.com) — the road-closure and camera-list files Terra Live prepares; a file request, nothing about you.</li>
+<li>Cloudflare (terra-live.terra-live.workers.dev), with GitHub (raw.githubusercontent.com) as a backup — files Terra Live prepares: road closures, the camera list, the cloud map and satellite orbits; a file request, nothing about you.</li>
 </ul>
 <p>Each service receives only what it needs to answer the request and applies its own privacy policy.</p>
 <h4>Links</h4>
@@ -73,7 +73,7 @@ terms: { ru: `
 <h4>3. Новости и чужой контент</h4>
 <p>Заголовки и краткие анонсы принадлежат изданиям и показываются из их открытых лент с указанием источника и ссылкой на оригинал. Сведения о местах (отели, стоянки, парки), их названия и значки принадлежат соответствующим компаниям; классы отелей по звёздам определяются по сети отелей и носят ориентировочный характер. Снимки дорожных камер принадлежат дорожным службам, которые их публикуют, и загружаются с их серверов. Terra Live не связан с этими изданиями, компаниями и государственными службами, не одобрен ими и не отвечает за их содержание, цены и доступность.</p>
 <h4>4. Сторонние сервисы</h4>
-<p>Приложение зависит от сервисов Apple, NASA, NWS, MET Norway, EUMETSAT, CelesTrak, GDACS, дорожных служб штатов (DOT и 511), Бюро переписи США, GitHub и изданий. Они могут изменяться, ограничиваться или прекращаться без нашего участия.</p>
+<p>Приложение зависит от сервисов Apple, NASA, NWS, MET Norway, EUMETSAT, CelesTrak, GDACS, дорожных служб штатов (DOT и 511), Бюро переписи США, Cloudflare, GitHub и изданий. Они могут изменяться, ограничиваться или прекращаться без нашего участия.</p>
 <h4>5. Отсутствие гарантий</h4>
 <p>Приложение предоставляется «как есть», без каких-либо гарантий, явных или подразумеваемых, в том числе гарантий точности, пригодности для определённой цели и бесперебойной работы.</p>
 <h4>6. Ограничение ответственности</h4>
@@ -95,7 +95,7 @@ en: `
 <h4>3. News and third-party content</h4>
 <p>Headlines and summaries belong to the publishers and are shown from their public feeds with the source named and a link to the original. Information about places (hotels, parking, parks), their names and icons belong to the respective businesses; hotel star classes are derived from the hotel chain and are indicative only. Traffic camera pictures belong to the transportation agencies that publish them and load from their servers. Terra Live is not affiliated with or endorsed by these publishers, businesses or government agencies and is not responsible for their content, prices or availability.</p>
 <h4>4. Third-party services</h4>
-<p>The app depends on services of Apple, NASA, NWS, MET Norway, EUMETSAT, CelesTrak, GDACS, state transportation agencies (DOT and 511), the U.S. Census Bureau, GitHub and news publishers. They may change, be limited or stop without our involvement.</p>
+<p>The app depends on services of Apple, NASA, NWS, MET Norway, EUMETSAT, CelesTrak, GDACS, state transportation agencies (DOT and 511), the U.S. Census Bureau, Cloudflare, GitHub and news publishers. They may change, be limited or stop without our involvement.</p>
 <h4>5. No warranty</h4>
 <p>The app is provided “as is”, without warranties of any kind, express or implied, including accuracy, fitness for a particular purpose and uninterrupted operation.</p>
 <h4>6. Limitation of liability</h4>
