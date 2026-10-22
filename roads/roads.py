@@ -104,20 +104,36 @@ def ibi(host, st, src):
         start += 100
     return cams
 
+# States on the Castle Rock CARS platform: <st>tg.carsprogram.org/cameras_v1/api/cameras lists public cameras with snapshots
+CARS = [("ia", "Iowa 511"), ("in", "INDOT"), ("mn", "511MN"), ("ks", "KanDrive"), ("ne", "Nebraska 511"), ("co", "COtrip"), ("sd", "SD511"), ("ma", "Mass511")]
+
+def cars(st, src):
+    cams = []
+    for c in get(f"https://{st}tg.carsprogram.org/cameras_v1/api/cameras"):
+        loc = c.get("location") or {}
+        img = next((v.get("videoPreviewUrl") or v.get("url") for v in c.get("views") or []
+                    if v.get("videoPreviewUrl") or v.get("type") == "STILL_IMAGE"), None)   # a still picture; video-only views are skipped
+        if not c.get("public") or not img or not img.startswith("https://"): continue
+        cams.append({"id": f"{st}-{c.get('id')}", "src": src, "state": st.upper(), "name": (c.get("name") or "")[:80],
+                     "route": (loc.get("routeId") or "")[:30], "lat": num(loc.get("latitude")), "lon": num(loc.get("longitude")), "img": img})
+    return cams
+
 def cams511(stamp):
     """Camera lists hardly change: fetch them once a day, reuse yesterday's copy from the data branch in between.
     A site that is down keeps its old list."""
     prev = {"at": None, "items": []}
     try: prev = get("https://raw.githubusercontent.com/evgeniystatuev-stack/terra-live/data/cameras-511.json")
     except Exception as ex: print("cameras-511 cache", ex, file=sys.stderr)
-    if prev.get("items") and NOW - (iso(prev.get("at")) or 0) < 20 * 3600: return prev
-    def one(h):
-        try: return h[1], ibi(*h)
-        except Exception as ex: print("511", h[0], ex, file=sys.stderr); return h[1], None
+    sources = sorted([st for _, st, _ in IBI] + [st.upper() for st, _ in CARS])   # a new state in the code refreshes the cache at once
+    if prev.get("items") and prev.get("sources") == sources and NOW - (iso(prev.get("at")) or 0) < 20 * 3600: return prev
+    jobs = [(st, lambda h=h, st=st, src=src: ibi(h, st, src)) for h, st, src in IBI] + [(st.upper(), lambda st=st, src=src: cars(st, src)) for st, src in CARS]
+    def one(job):
+        try: return job[0], job[1]()
+        except Exception as ex: print("511", job[0], ex, file=sys.stderr); return job[0], None
     items = []
     with cf.ThreadPoolExecutor(6) as ex:
-        for st, got in ex.map(one, IBI): items += got if got is not None else [x for x in prev.get("items") or [] if x.get("state") == st]
-    return {"at": stamp, "items": items}
+        for st, got in ex.map(one, jobs): items += got if got is not None else [x for x in prev.get("items") or [] if x.get("state") == st]
+    return {"at": stamp, "sources": sources, "items": items}
 
 def wzdx_feeds():
     reg = get("https://data.transportation.gov/resource/69qe-yiui.json?$limit=500")
