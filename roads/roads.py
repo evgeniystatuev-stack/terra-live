@@ -2,16 +2,30 @@
 """Terra Live road data: full closures, chain controls and cameras from open DOT feeds -> closures.json, cameras.json.
 Runs every 10 min in GitHub Actions and force-pushes the `data` branch; the app reads the two files. Stdlib only.
 Sources: Caltrans CWWP2 (open JSON, 12 districts) and every WZDx feed in the USDOT registry that needs no key."""
-import json, sys, os, time, hashlib, datetime as dt, urllib.request, concurrent.futures as cf
+import json, sys, os, time, hashlib, datetime as dt, urllib.request, urllib.error, urllib.parse, socket, ipaddress, concurrent.futures as cf
 
 UA = {"User-Agent": "TerraLive/0.1 (road data aggregator; yauhenistatuyeu1996@yahoo.com)"}
 NOW = time.time(); SOON = NOW + 24 * 3600   # closures starting within a day are worth warning about
 
 MAX_BYTES = 40 * 1024 * 1024   # a feed bigger than this is broken, not useful
 
+def public_https(url):
+    """Registry entries are third-party data: only https, only public hosts (no localhost, LAN or link-local targets)."""
+    u = urllib.parse.urlparse(url)
+    if u.scheme != "https" or not u.hostname: raise ValueError("https only: " + url[:60])
+    for info in socket.getaddrinfo(u.hostname, 443, proto=socket.IPPROTO_TCP):
+        ip = ipaddress.ip_address(info[4][0])
+        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved: raise ValueError("private host: " + u.hostname)
+    return url
+
+class _SafeRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return super().redirect_request(req, fp, code, msg, headers, public_https(newurl))
+
+OPENER = urllib.request.build_opener(_SafeRedirect())
+
 def get(url, timeout=25):
-    if not url.startswith("https://"): raise ValueError("https only: " + url[:60])   # registry entries are third-party data
-    with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=timeout) as r:
+    with OPENER.open(urllib.request.Request(public_https(url), headers=UA), timeout=timeout) as r:
         return json.loads(r.read(MAX_BYTES).decode("utf-8", "replace"))
 
 def num(x):
