@@ -40,7 +40,7 @@ def iso(s):
 def nsew(d):
     """'North' / 'northbound' / 'NB' -> 'N'; anything else -> '' (unknown: applies to both directions)"""
     d = (d or "").strip().upper()
-    return d[0] if d[:1] in "NSEW" and not d.startswith("UN") else ""
+    return d[0] if d and d[0] in "NSEW" and not d.startswith("UN") else ""
 
 def caltrans(d):
     base, out, cams = f"https://cwwp2.dot.ca.gov/data/d{d}/", [], []
