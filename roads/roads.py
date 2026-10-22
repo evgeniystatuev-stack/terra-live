@@ -95,7 +95,8 @@ def wzdx(state, url):
         else: continue
         road = ", ".join(core.get("road_names") or [])[:40]; d = core.get("direction") or ""; desc = (core.get("description") or "")[:90]
         key = str(ft.get("id") or hashlib.md5(f"{road}{a}".encode()).hexdigest()[:10])
-        out.append({"id": f"wz-{state}-{key}", "src": "WZDx " + str(state), "state": str(state), "kind": "closed", "route": road, "dir": nsew(d),
+        src = "WZDx" if str(state).lower() in ("n/a", "?") else f"{str(state).title()} DOT (WZDx)"
+        out.append({"id": f"wz-{state}-{key}", "src": src, "state": str(state), "kind": "closed", "route": road, "dir": nsew(d),
                     "title": f"{road} {d}: all lanes closed — {desc}".strip(), "lat": num(a[1]), "lon": num(a[0]), "lat2": num(b[1]), "lon2": num(b[0]),
                     "start": start, "end": end})
     return out
