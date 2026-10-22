@@ -7,9 +7,12 @@ import json, sys, os, time, hashlib, datetime as dt, urllib.request, concurrent.
 UA = {"User-Agent": "TerraLive/0.1 (road data aggregator; yauhenistatuyeu1996@yahoo.com)"}
 NOW = time.time(); SOON = NOW + 24 * 3600   # closures starting within a day are worth warning about
 
+MAX_BYTES = 40 * 1024 * 1024   # a feed bigger than this is broken, not useful
+
 def get(url, timeout=25):
+    if not url.startswith("https://"): raise ValueError("https only: " + url[:60])   # registry entries are third-party data
     with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=timeout) as r:
-        return json.loads(r.read().decode("utf-8", "replace"))
+        return json.loads(r.read(MAX_BYTES).decode("utf-8", "replace"))
 
 def num(x):
     try: return float(x)
@@ -83,9 +86,8 @@ def main(outdir):
     with cf.ThreadPoolExecutor(12) as ex:
         for c, k in ex.map(caltrans, range(1, 13)): closures += c; cams += k
         for c in ex.map(lambda s: wzdx(*s), wzdx_feeds()): closures += c
-    closures = [x for x in closures if x["lat"] is not None and x["lon"] is not None]
-    cams = [x for x in cams if x["lat"] is not None and x["lon"] is not None]
-    assert all(-90 <= x["lat"] <= 90 and -180 <= x["lon"] <= 180 for x in closures + cams), "bad coordinates"
+    ok = lambda x: x["lat"] is not None and x["lon"] is not None and -90 <= x["lat"] <= 90 and -180 <= x["lon"] <= 180
+    closures, cams = [x for x in closures if ok(x)], [x for x in cams if ok(x)]   # one bad record must not sink the whole file
     os.makedirs(outdir, exist_ok=True)
     stamp = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
     for name, items in (("closures.json", closures), ("cameras.json", cams)):
