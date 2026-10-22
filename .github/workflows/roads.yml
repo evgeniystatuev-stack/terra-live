@@ -46,7 +46,9 @@ jobs:
           mkdir out && cd out
           curl -fsSL -A "TerraLive/0.1 (cloud mirror; yauhenistatuyeu1996@yahoo.com)" -o clouds.jpg https://clouds.matteason.co.uk/images/4096x2048/clouds.jpg
           [ "$(stat -c %s clouds.jpg)" -gt 200000 ] || { echo "image too small — keeping the previous copy"; exit 0; }
-          git init -q -b clouds && git add clouds.jpg
+          # satellite orbits for the app; CelesTrak asks for one download per 2 hours, this job runs every 3
+          for g in stations visual; do curl -fsSL -A "TerraLive/0.1 (orbit mirror; yauhenistatuyeu1996@yahoo.com)" -o $g.tle "https://celestrak.org/NORAD/elements/gp.php?GROUP=$g&FORMAT=TLE" && grep -q "^1 " $g.tle || rm -f $g.tle; done
+          git init -q -b clouds && git add -A
           git -c user.name=terra-live-bot -c user.email=bot@users.noreply.github.com commit -qm "clouds $(date -u +%FT%TZ)"
           git push -qf "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}" clouds
         env:
