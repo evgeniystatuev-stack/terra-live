@@ -1,0 +1,8 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Terra Live — privacy</title>
+<style>body{font:16px/1.5 -apple-system,system-ui,sans-serif;max-width:720px;margin:40px auto;padding:0 20px;color:#222}h3{font-size:26px}h4{margin-top:22px}.muted{color:#777}a{color:#0a63c9}.lang{float:right}</style></head>
+<body><a class="lang" href="#" onclick="render(lang==='ru'?'en':'ru');return false" id="sw"></a><div id="doc"></div>
+<script src="legal.js"></script><script>
+let lang=(navigator.language||'en').startsWith('ru')?'ru':'en';
+function render(l){lang=l;document.getElementById('sw').textContent=l==='ru'?'English':'Русский';
+document.getElementById('doc').innerHTML=LEGAL['privacy'][l].replace('{CONTACT}',SUPPORT_EMAIL?('<a href="mailto:'+SUPPORT_EMAIL+'">'+SUPPORT_EMAIL+'</a>'):(l==='ru'?'Через страницу приложения в App Store.':'Through the app’s page on the App Store.'));}
+render(lang);</script></body></html>
