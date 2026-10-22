@@ -3,13 +3,14 @@ on:
   schedule:
     - cron: "*/10 * * * *"
     - cron: "7 */3 * * *"
+    - cron: "0 12 * * 1"
   workflow_dispatch:
 permissions:
   contents: write
 concurrency: roads
 jobs:
   roads:
-    if: github.event.schedule != '7 */3 * * *'
+    if: github.event.schedule == '*/10 * * * *' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,14 +23,18 @@ jobs:
           cd out && git init -q -b data && git add -A
           git -c user.name=terra-live-bot -c user.email=bot@users.noreply.github.com commit -qm "roads $(date -u +%FT%TZ)"
           git push -qf "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}" data
-      # GitHub switches off schedules after 60 days without commits on the repo: leave a weekly footprint on main
-      - name: keepalive
-        if: github.event.schedule == '*/10 * * * *' && github.run_number % 1000 == 0
-        env:
+  # GitHub switches off schedules after 60 days without commits on the repo: leave a weekly footprint on main
+  keepalive:
+    if: github.event.schedule == '0 12 * * 1'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           date -u +%FT%TZ > roads/.last-run && git add roads/.last-run
-          git -c user.name=terra-live-bot -c user.email=bot@users.noreply.github.com commit -qm "roads keepalive" || exit 0
+          git -c user.name=terra-live-bot -c user.email=bot@users.noreply.github.com commit -qm "roads keepalive"
           git push -q "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}" HEAD:main
   # Our own copy of the live cloud map (Live Cloud Maps, CC0; "Contains modified EUMETSAT data"): the app falls back to it
   # if that one-person server is down. Refreshed every 3 hours, single-commit branch `clouds`.
