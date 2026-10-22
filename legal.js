@@ -1,6 +1,6 @@
-// Legal texts shown in Settings. Keep appstore/privacy.md and appstore/terms.md in sync (those are the published copies).
+// Legal texts shown in Settings. The website renders an identical copy: appstore/site/legal.js — keep the two files the same.
 const SUPPORT_EMAIL = 'yauhenistatuyeu1996@yahoo.com';  // set to the support address before App Store submission; the Contact row hides while empty
-const LEGAL_DATE = { ru: '21 октября 2026 г.', en: 'October 21, 2026' };
+const LEGAL_DATE = { ru: '22 октября 2026 г.', en: 'October 22, 2026' };
 
 const LEGAL = {
 privacy: { ru: `
@@ -10,18 +10,22 @@ privacy: { ru: `
 <p><b>Коротко:</b> в Terra Live нет аккаунтов, рекламы, аналитики и собственных серверов. Мы не собираем, не храним и не продаём персональные данные.</p>
 <h4>Геопозиция</h4>
 <p>Если вы разрешите доступ, приложение использует вашу геопозицию на устройстве, чтобы показать погоду и новости рядом с вами и подставить начало маршрута. Для этого координаты (без вашего имени, идентификаторов или истории) отправляются напрямую в сервисы погоды и карт, перечисленные ниже, только на время обработки запроса. Геопозиция никогда не используется для рекламы или отслеживания. Доступ можно отозвать в Настройках iOS в любой момент — приложение продолжит работать.</p>
+<h4>Уведомления о дороге (фоновая геопозиция)</h4>
+<p>Если вы включите «Уведомления о дороге» и разрешите геопозицию «Всегда», приложение в фоне смотрит, где вы находитесь на сохранённом маршруте, и предупреждает о погоде и закрытиях на 2–3 часа вперёд. Сравнение с маршрутом идёт на устройстве; наружу уходят только координаты точек впереди по маршруту — в погодные службы из списка ниже. Уведомления создаются на устройстве, push-сервера нет. Выключите переключатель — фоновая геопозиция сразу перестаёт использоваться.</p>
 <h4>Сервисы, к которым обращается приложение</h4>
 <ul>
 <li>Apple — Карты, названия мест, Apple Weather (координаты места или области карты).</li>
 <li>Национальная метеослужба США (NWS), MET Norway — прогноз погоды (координаты).</li>
 <li>NASA GIBS — снимки Земли и снежный покров; Live Cloud Maps / EUMETSAT — облака; CelesTrak — орбиты спутников; GDACS — тропические циклоны (запросы без данных о вас).</li>
 <li>Издания новостей — их открытые RSS-ленты (запрос ленты, без данных о вас); сайты мест отдыха — их значки (favicon).</li>
+<li>Дорожные службы штатов (Caltrans и системы 511) — снимки дорожных камер загружаются прямо с их серверов, когда вы открываете камеру, как обычная веб-страница: сервер видит ваш IP-адрес и больше ничего.</li>
+<li>GitHub (raw.githubusercontent.com) — файлы с закрытиями дорог и списком камер, которые готовит Terra Live; запрос файла без данных о вас.</li>
 </ul>
 <p>Каждый сервис получает только то, что нужно для ответа на запрос, и действует по собственной политике конфиденциальности.</p>
 <h4>Ссылки</h4>
 <p>«Подробнее» у новости и ссылки в карточках мест открывают сайт издания или заведения в Safari. Там действуют правила этого сайта.</p>
 <h4>Что хранится на устройстве</h4>
-<p>Только ваши настройки: язык новостей, единицы измерения, вид транспорта и фильтры маршрута. Они не покидают устройство.</p>
+<p>Ваши настройки (язык новостей, единицы измерения, вид транспорта, фильтры маршрута и трасс), история поездок и активный маршрут для уведомлений о дороге. Они не покидают устройство; поездку можно удалить из истории, а всё сразу — удалив приложение.</p>
 <h4>Дети</h4>
 <p>Приложение не собирает данные ни о ком, включая детей.</p>
 <h4>Изменения</h4>
@@ -34,18 +38,22 @@ en: `
 <p><b>In short:</b> Terra Live has no accounts, ads, analytics or servers of its own. We do not collect, store or sell personal data.</p>
 <h4>Location</h4>
 <p>If you allow it, the app uses your location on the device to show the weather and news around you and to set the start of your route. To do that, coordinates (no name, identifiers or history) are sent directly to the weather and map services listed below, only for the time it takes to answer the request. Location is never used for advertising or tracking. You can revoke access in iOS Settings at any time; the app keeps working.</p>
+<h4>Road alerts (background location)</h4>
+<p>If you turn on Road alerts and allow location “Always”, the app checks in the background where you are on your saved route and warns you about weather and closures 2–3 hours ahead. The comparison with the route happens on your device; only coordinates of points ahead on the route are sent, to the weather services listed below. Alerts are created on the device; there is no push server. Turn the switch off and background location stops at once.</p>
 <h4>Services the app talks to</h4>
 <ul>
 <li>Apple — Maps, place names, Apple Weather (coordinates of a place or map area).</li>
 <li>US National Weather Service (NWS), MET Norway — forecasts (coordinates).</li>
 <li>NASA GIBS — Earth imagery and snow cover; Live Cloud Maps / EUMETSAT — clouds; CelesTrak — satellite orbits; GDACS — tropical cyclones (requests carry no data about you).</li>
 <li>News publishers — their public RSS feeds (a feed request, nothing about you); websites of places to stop — their icons (favicons).</li>
+<li>State transportation agencies (Caltrans and 511 systems) — traffic camera pictures load directly from their servers when you open a camera, like any web page: the server sees your IP address and nothing else.</li>
+<li>GitHub (raw.githubusercontent.com) — the road-closure and camera-list files Terra Live prepares; a file request, nothing about you.</li>
 </ul>
 <p>Each service receives only what it needs to answer the request and applies its own privacy policy.</p>
 <h4>Links</h4>
 <p>“Read more” on a story and links on place cards open the publisher’s or business’s website in Safari, where that site’s rules apply.</p>
 <h4>What stays on your device</h4>
-<p>Only your settings: news language, units, vehicle type and route filters. They never leave the device.</p>
+<p>Your settings (news language, units, vehicle type, route and highway filters), your trip history and the active trip for road alerts. They never leave the device; delete a trip from the history, or everything by deleting the app.</p>
 <h4>Children</h4>
 <p>The app collects no data from anyone, including children.</p>
 <h4>Changes</h4>
@@ -61,11 +69,11 @@ terms: { ru: `
 <h4>1. Лицензия</h4>
 <p>Вы получаете неисключительную лицензию на использование приложения на своих устройствах Apple в личных целях. Нельзя копировать, изменять, продавать приложение или обходить его защиту.</p>
 <h4>2. Погода, дороги и маршруты — только для сведения</h4>
-<p>Прогнозы погоды, предупреждения об опасных явлениях (включая метель, ледяной дождь и гололёд — «black ice»), маршруты, время в пути и места остановок рассчитываются автоматически по данным сторонних сервисов и могут быть неточными, устаревшими или неполными. Они не заменяют официальные предупреждения властей, дорожные знаки и вашу собственную оценку обстановки. <b>Все решения за рулём принимает водитель.</b> Не пользуйтесь приложением во время движения — остановитесь в безопасном месте.</p>
+<p>Прогнозы погоды, предупреждения об опасных явлениях (включая метель, ледяной дождь и гололёд — «black ice»), закрытия дорог и цепи, снимки дорожных камер, уведомления о дороге, маршруты, время в пути и места остановок рассчитываются автоматически или берутся у сторонних сервисов и могут быть неточными, устаревшими, запоздалыми или неполными. Снимок камеры может быть старым или недоступным; уведомление может прийти с опозданием или не прийти совсем — iOS сама решает, когда приложению работать в фоне. Они не заменяют официальные предупреждения властей, дорожные знаки и вашу собственную оценку обстановки. <b>Все решения за рулём принимает водитель.</b> Не пользуйтесь приложением во время движения — остановитесь в безопасном месте.</p>
 <h4>3. Новости и чужой контент</h4>
-<p>Заголовки и краткие анонсы принадлежат изданиям и показываются из их открытых лент с указанием источника и ссылкой на оригинал. Сведения о местах (отели, стоянки, парки), их названия и значки принадлежат соответствующим компаниям; классы отелей по звёздам определяются по сети отелей и носят ориентировочный характер. Terra Live не связан с этими изданиями и компаниями и не отвечает за их содержание, цены и доступность.</p>
+<p>Заголовки и краткие анонсы принадлежат изданиям и показываются из их открытых лент с указанием источника и ссылкой на оригинал. Сведения о местах (отели, стоянки, парки), их названия и значки принадлежат соответствующим компаниям; классы отелей по звёздам определяются по сети отелей и носят ориентировочный характер. Снимки дорожных камер принадлежат дорожным службам, которые их публикуют, и загружаются с их серверов. Terra Live не связан с этими изданиями, компаниями и государственными службами, не одобрен ими и не отвечает за их содержание, цены и доступность.</p>
 <h4>4. Сторонние сервисы</h4>
-<p>Приложение зависит от сервисов Apple, NASA, NWS, MET Norway, EUMETSAT, CelesTrak, GDACS и изданий. Они могут изменяться, ограничиваться или прекращаться без нашего участия.</p>
+<p>Приложение зависит от сервисов Apple, NASA, NWS, MET Norway, EUMETSAT, CelesTrak, GDACS, дорожных служб штатов (DOT и 511), Бюро переписи США, GitHub и изданий. Они могут изменяться, ограничиваться или прекращаться без нашего участия.</p>
 <h4>5. Отсутствие гарантий</h4>
 <p>Приложение предоставляется «как есть», без каких-либо гарантий, явных или подразумеваемых, в том числе гарантий точности, пригодности для определённой цели и бесперебойной работы.</p>
 <h4>6. Ограничение ответственности</h4>
@@ -83,11 +91,11 @@ en: `
 <h4>1. License</h4>
 <p>You receive a non-exclusive license to use the app on your Apple devices for personal purposes. You may not copy, modify, sell the app or circumvent its protection.</p>
 <h4>2. Weather, roads and routes are for information only</h4>
-<p>Forecasts, hazard warnings (including blizzards, freezing rain and black ice), routes, travel times and places to stop are computed automatically from third-party data and may be inaccurate, outdated or incomplete. They do not replace official warnings, road signs or your own judgment. <b>Every decision behind the wheel is the driver’s.</b> Do not use the app while driving — stop in a safe place first.</p>
+<p>Forecasts, hazard warnings (including blizzards, freezing rain and black ice), road closures and chain controls, traffic camera pictures, road alerts, routes, travel times and places to stop are computed automatically or come from third parties and may be inaccurate, outdated, delayed or incomplete. A camera picture may be old or unavailable; an alert may arrive late or not at all — iOS decides when the app may run in the background. They do not replace official warnings, road signs or your own judgment. <b>Every decision behind the wheel is the driver’s.</b> Do not use the app while driving — stop in a safe place first.</p>
 <h4>3. News and third-party content</h4>
-<p>Headlines and summaries belong to the publishers and are shown from their public feeds with the source named and a link to the original. Information about places (hotels, parking, parks), their names and icons belong to the respective businesses; hotel star classes are derived from the hotel chain and are indicative only. Terra Live is not affiliated with these publishers or businesses and is not responsible for their content, prices or availability.</p>
+<p>Headlines and summaries belong to the publishers and are shown from their public feeds with the source named and a link to the original. Information about places (hotels, parking, parks), their names and icons belong to the respective businesses; hotel star classes are derived from the hotel chain and are indicative only. Traffic camera pictures belong to the transportation agencies that publish them and load from their servers. Terra Live is not affiliated with or endorsed by these publishers, businesses or government agencies and is not responsible for their content, prices or availability.</p>
 <h4>4. Third-party services</h4>
-<p>The app depends on services of Apple, NASA, NWS, MET Norway, EUMETSAT, CelesTrak, GDACS and news publishers. They may change, be limited or stop without our involvement.</p>
+<p>The app depends on services of Apple, NASA, NWS, MET Norway, EUMETSAT, CelesTrak, GDACS, state transportation agencies (DOT and 511), the U.S. Census Bureau, GitHub and news publishers. They may change, be limited or stop without our involvement.</p>
 <h4>5. No warranty</h4>
 <p>The app is provided “as is”, without warranties of any kind, express or implied, including accuracy, fitness for a particular purpose and uninterrupted operation.</p>
 <h4>6. Limitation of liability</h4>
