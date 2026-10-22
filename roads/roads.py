@@ -37,6 +37,11 @@ def iso(s):
     try: return dt.datetime.fromisoformat(str(s).replace("Z", "+00:00")).timestamp()
     except ValueError: return None
 
+def nsew(d):
+    """'North' / 'northbound' / 'NB' -> 'N'; anything else -> '' (unknown: applies to both directions)"""
+    d = (d or "").strip().upper()
+    return d[0] if d[:1] in "NSEW" and not d.startswith("UN") else ""
+
 def caltrans(d):
     base, out, cams = f"https://cwwp2.dot.ca.gov/data/d{d}/", [], []
     try:
@@ -46,7 +51,7 @@ def caltrans(d):
             if cl["code1098"]["isCode1098"] == "true" or cl["code1022"]["isCode1022"] == "true": continue  # finished / cancelled
             start, end, forever = num(ts.get("closureStartEpoch")), num(ts.get("closureEndEpoch")), ts.get("isClosureEndIndefinite") == "true"
             if (start and start > SOON) or (end and end < NOW and not forever): continue
-            out.append({"id": "ca-lcs-" + c["index"], "src": "Caltrans", "state": "CA", "kind": "closed", "route": b.get("beginRoute", ""),
+            out.append({"id": "ca-lcs-" + c["index"], "src": "Caltrans", "state": "CA", "kind": "closed", "route": b.get("beginRoute", ""), "dir": nsew(loc.get("travelFlowDirection")),
                         "title": f'{b.get("beginRoute", "")} {loc.get("travelFlowDirection", "")}: full closure {b.get("beginLocationName", "")} → {en.get("endLocationName", "")} ({cl.get("typeOfWork", "")})',
                         "lat": num(b["beginLatitude"]), "lon": num(b["beginLongitude"]), "lat2": num(en["endLatitude"]), "lon2": num(en["endLongitude"]),
                         "start": start, "end": None if forever else end})
@@ -55,7 +60,7 @@ def caltrans(d):
         for e in get(base + f"cc/ccStatusD{d:02d}.json")["data"]:
             c = e["cc"]; st = c["statusData"]; l = c["location"]; s = st.get("status") or ""
             if c.get("inService") != "true" or not s.startswith("R-") or s == "R-0": continue
-            out.append({"id": "ca-cc-" + c["index"], "src": "Caltrans", "state": "CA", "kind": "chain", "route": l.get("route", ""),
+            out.append({"id": "ca-cc-" + c["index"], "src": "Caltrans", "state": "CA", "kind": "chain", "route": l.get("route", ""), "dir": nsew(l.get("direction")),
                         "title": f'{l.get("route", "")} {l.get("locationName", "")}: chain control {s} — {st.get("statusDescription", "")}',
                         "lat": num(l["latitude"]), "lon": num(l["longitude"]), "lat2": None, "lon2": None, "start": None, "end": None})
     except Exception as ex: print("caltrans cc", d, ex, file=sys.stderr)
@@ -90,7 +95,7 @@ def wzdx(state, url):
         else: continue
         road = ", ".join(core.get("road_names") or [])[:40]; d = core.get("direction") or ""; desc = (core.get("description") or "")[:90]
         key = str(ft.get("id") or hashlib.md5(f"{road}{a}".encode()).hexdigest()[:10])
-        out.append({"id": f"wz-{state}-{key}", "src": "WZDx " + str(state), "state": str(state), "kind": "closed", "route": road,
+        out.append({"id": f"wz-{state}-{key}", "src": "WZDx " + str(state), "state": str(state), "kind": "closed", "route": road, "dir": nsew(d),
                     "title": f"{road} {d}: all lanes closed — {desc}".strip(), "lat": num(a[1]), "lon": num(a[0]), "lat2": num(b[1]), "lon2": num(b[0]),
                     "start": start, "end": end})
     return out
@@ -107,6 +112,8 @@ def main(outdir):
     for name, items in (("closures.json", closures), ("cameras.json", cams)):
         json.dump({"at": stamp, "items": items}, open(os.path.join(outdir, name), "w"), ensure_ascii=False, separators=(",", ":"))
     print(f"closures {len(closures)} (chain {sum(1 for x in closures if x['kind']=='chain')}), cameras {len(cams)}")
+
+assert nsew("North") == "N" and nsew("southbound") == "S" and nsew("Both") == "" and nsew("undefined") == "" and nsew(None) == ""
 
 if __name__ == "__main__":
     main(sys.argv[1] if len(sys.argv) > 1 else "out")
