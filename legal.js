@@ -114,6 +114,8 @@ credits: [
   { what: 'Milky Way panorama', who: 'ESO/S. Brunier', lic: 'CC BY 4.0' },
   { what: 'Star catalogue, constellations', who: 'Hipparcos (ESA 1997); data files from d3-celestial © 2015 Olaf Frohn', lic: 'BSD-3-Clause', file: 'vendor/LICENSE-d3-celestial.txt' },
   { what: 'Country, state and city borders and names, highways', who: 'Natural Earth (naturalearthdata.com)', lic: 'public domain' },
+  { what: 'State highways', who: 'U.S. Census Bureau, TIGER/Line 2024', lic: 'public domain' },
+  { what: 'Road closures, chain controls, traffic cameras', who: 'Caltrans (California DOT) and state DOT work-zone feeds (WZDx)', lic: 'public data' },
   { what: 'Planet positions', who: 'JPL Keplerian elements (Standish), NASA', lic: 'public domain' },
   { what: 'News', who: 'the publishers named on each story, via their public RSS feeds; all rights belong to them', lic: '' },
   { what: 'Place icons', who: 'favicons published by the businesses themselves; trademarks belong to their owners', lic: '' },
