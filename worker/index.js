@@ -17,7 +17,14 @@ export default {
     return new Response(body, { headers: { 'content-type': TYPE(name), 'cache-control': `public, max-age=${f[1]}`, 'access-control-allow-origin': '*' } });
   },
   // one writer, and only when GitHub has a new version (ETag): about 300 KV writes a day, the free plan allows 1000
-  async scheduled(_, env) {
+  async scheduled(ev, env) {
+    if (env.GH_TOKEN) {   // start the road-data build on GitHub: its own */10 schedule fires every 2–3 hours at best, this clock is exact
+      const t = new Date(ev.scheduledTime), job = t.getUTCHours() % 3 === 0 && t.getUTCMinutes() < 10 ? 'all' : 'roads';   // clouds + orbits every 3 h (CelesTrak: once per 2 h)
+      const r = await fetch('https://api.github.com/repos/evgeniystatuev-stack/terra-live/actions/workflows/roads.yml/dispatches', { method: 'POST',
+        headers: { authorization: 'Bearer ' + env.GH_TOKEN, accept: 'application/vnd.github+json', 'user-agent': 'terra-live-worker' },
+        body: JSON.stringify({ ref: 'main', inputs: { job } }) }).catch(e => ({ status: String(e) }));
+      if (r.status !== 204) console.log('dispatch failed', r.status);
+    }
     for (const [name, [branch]] of Object.entries(FILES)) {
       const etag = await env.DATA.get('etag:' + name);
       const r = await fetch(GH + branch + '/' + name, { headers: etag ? { 'if-none-match': etag } : {} });

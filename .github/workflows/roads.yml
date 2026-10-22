@@ -4,13 +4,17 @@ on:
     - cron: "*/10 * * * *"
     - cron: "7 */3 * * *"
     - cron: "0 12 * * 1"
-  workflow_dispatch:
+  workflow_dispatch:   # the Cloudflare worker calls this every 10 min (GitHub's own schedule fires every 2–3 hours at best)
+    inputs:
+      job:
+        description: roads, clouds or all
+        default: all
 permissions:
   contents: write
 concurrency: roads
 jobs:
   roads:
-    if: github.event.schedule == '*/10 * * * *' || github.event_name == 'workflow_dispatch'
+    if: github.event.schedule == '*/10 * * * *' || (github.event_name == 'workflow_dispatch' && inputs.job != 'clouds')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -39,7 +43,7 @@ jobs:
   # Our own copy of the live cloud map (Live Cloud Maps, CC0; "Contains modified EUMETSAT data"): the app falls back to it
   # if that one-person server is down. Refreshed every 3 hours, single-commit branch `clouds`.
   clouds:
-    if: github.event.schedule == '7 */3 * * *' || github.event_name == 'workflow_dispatch'
+    if: github.event.schedule == '7 */3 * * *' || (github.event_name == 'workflow_dispatch' && inputs.job != 'roads')
     runs-on: ubuntu-latest
     steps:
       - run: |
