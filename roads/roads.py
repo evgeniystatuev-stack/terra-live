@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Terra Live road data: full closures, chain controls and cameras from open DOT feeds -> closures.json, cameras.json.
 Runs every 10 min in GitHub Actions and force-pushes the `data` branch; the app reads the two files. Stdlib only.
-Sources: Caltrans CWWP2 (open JSON, 12 districts) and every WZDx feed in the USDOT registry that needs no key."""
-import json, sys, os, time, hashlib, datetime as dt, urllib.request, urllib.error, urllib.parse, socket, ipaddress, concurrent.futures as cf
+Sources: Caltrans CWWP2 (open JSON, 12 districts), every WZDx feed in the USDOT registry that needs no key, and the
+camera lists of state 511 sites on the IBI platform (the list their own public map loads; pictures load straight from the state)."""
+import json, re, sys, os, time, hashlib, datetime as dt, urllib.request, urllib.error, urllib.parse, socket, ipaddress, concurrent.futures as cf
 
 UA = {"User-Agent": "TerraLive/0.1 (road data aggregator; yauhenistatuyeu1996@yahoo.com)"}
 NOW = time.time(); SOON = NOW + 24 * 3600   # closures starting within a day are worth warning about
@@ -73,6 +74,51 @@ def caltrans(d):
     except Exception as ex: print("caltrans cctv", d, ex, file=sys.stderr)
     return out, cams
 
+# State 511 sites on one platform (IBI): /List/GetData/Cameras gives every camera with its picture, no key needed
+IBI = [("udottraffic.utah.gov", "UT", "UDOT"), ("511.idaho.gov", "ID", "Idaho 511"), ("az511.com", "AZ", "AZ511"), ("www.nvroads.com", "NV", "NDOT"),
+       ("newengland511.org", "NEW-ENG", "New England 511"), ("511ga.org", "GA", "511GA"), ("fl511.com", "FL", "FL511"), ("511pa.com", "PA", "511PA"),
+       ("511wi.gov", "WI", "511WI"), ("511la.org", "LA", "511LA"), ("ctroads.org", "CT", "CTroads"), ("511.alaska.gov", "AK", "Alaska 511"),
+       ("511.alberta.ca", "AB", "Alberta 511"), ("511on.ca", "ON", "Ontario 511")]
+POINT = re.compile(r"POINT \(([-\d.]+) ([-\d.]+)\)")
+
+def ibi(host, st, src):
+    cams, start, total = [], 0, 1
+    while start < min(total, 20000):
+        q = json.dumps({"columns": [{"data": None, "name": ""}, {"name": "sortOrder", "s": True}, {"name": "roadway", "s": True}],
+                        "order": [{"column": 1, "dir": "asc"}, {"column": 2, "dir": "asc"}], "start": start, "length": 100, "search": {"value": ""}})
+        d = None
+        for attempt in range(2):   # a page with one broken record answers 500 every time (511GA): skip that page, keep the rest
+            try: d = get(f"https://{host}/List/GetData/Cameras?" + urllib.parse.urlencode({"query": q, "lang": "en-US"})); break
+            except urllib.error.HTTPError as ex:
+                if start == 0 and attempt == 1 or ex.code < 500: raise
+                time.sleep(2)
+        if d is None: print("511", host, "skipped page", start, file=sys.stderr); start += 100; continue
+        total = int(d.get("recordsTotal") or 0)
+        for r in d.get("data") or []:
+            m = POINT.match(((r.get("latLng") or {}).get("geography") or {}).get("wellKnownText") or "")
+            img = next((i["imageUrl"] for i in r.get("images") or [] if i.get("imageUrl") and not i.get("disabled") and not i.get("blocked")), None)
+            if not m or not img: continue
+            img = img if img.startswith("https://") else f"https://{host}{img}" if img.startswith("/") else None
+            if img: cams.append({"id": f"{st.lower()}-{r.get('id')}", "src": src, "state": st, "name": (r.get("location") or "")[:80],
+                                 "route": (r.get("roadway") or "")[:30], "lat": num(m.group(2)), "lon": num(m.group(1)), "img": img})
+        start += 100
+    return cams
+
+def cams511(stamp):
+    """Camera lists hardly change: fetch them once a day, reuse yesterday's copy from the data branch in between.
+    A site that is down keeps its old list."""
+    prev = {"at": None, "items": []}
+    try: prev = get("https://raw.githubusercontent.com/evgeniystatuev-stack/terra-live/data/cameras-511.json")
+    except Exception as ex: print("cameras-511 cache", ex, file=sys.stderr)
+    if prev.get("items") and NOW - (iso(prev.get("at")) or 0) < 20 * 3600: return prev
+    def one(h):
+        try: return h[1], ibi(*h)
+        except Exception as ex: print("511", h[0], ex, file=sys.stderr); return h[1], None
+    items = []
+    with cf.ThreadPoolExecutor(6) as ex:
+        for st, got in ex.map(one, IBI): items += got if got is not None else [x for x in prev.get("items") or [] if x.get("state") == st]
+    return {"at": stamp, "items": items}
+
 def wzdx_feeds():
     reg = get("https://data.transportation.gov/resource/69qe-yiui.json?$limit=500")
     return [(r.get("state") or r.get("feedname") or "?", r["url"]["url"]) for r in reg
@@ -103,17 +149,20 @@ def wzdx(state, url):
 
 def main(outdir):
     closures, cams = [], []
+    stamp = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
     with cf.ThreadPoolExecutor(12) as ex:
+        c511 = ex.submit(cams511, stamp)
         for c, k in ex.map(caltrans, range(1, 13)): closures += c; cams += k
         for c in ex.map(lambda s: wzdx(*s), wzdx_feeds()): closures += c
+        c511 = c511.result()
     ok = lambda x: x["lat"] is not None and x["lon"] is not None and -90 <= x["lat"] <= 90 and -180 <= x["lon"] <= 180
-    closures, cams = [x for x in closures if ok(x)], [x for x in cams if ok(x)]   # one bad record must not sink the whole file
+    closures, cams = [x for x in closures if ok(x)], [x for x in cams + c511["items"] if ok(x)]   # one bad record must not sink the whole file
     os.makedirs(outdir, exist_ok=True)
-    stamp = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
-    for name, items in (("closures.json", closures), ("cameras.json", cams)):
-        json.dump({"at": stamp, "items": items}, open(os.path.join(outdir, name), "w"), ensure_ascii=False, separators=(",", ":"))
-    print(f"closures {len(closures)} (chain {sum(1 for x in closures if x['kind']=='chain')}), cameras {len(cams)}")
+    for name, data in (("closures.json", {"at": stamp, "items": closures}), ("cameras.json", {"at": stamp, "items": cams}), ("cameras-511.json", c511)):
+        json.dump(data, open(os.path.join(outdir, name), "w"), ensure_ascii=False, separators=(",", ":"))
+    print(f"closures {len(closures)} (chain {sum(1 for x in closures if x['kind']=='chain')}), cameras {len(cams)} (511: {len(c511['items'])})")
 
+assert POINT.match("POINT (-113.57482 37.10654)").groups() == ("-113.57482", "37.10654")
 assert nsew("North") == "N" and nsew("southbound") == "S" and nsew("Both") == "" and nsew("undefined") == "" and nsew(None) == ""
 
 if __name__ == "__main__":
