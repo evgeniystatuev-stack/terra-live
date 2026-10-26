@@ -136,7 +136,12 @@ def cams511(stamp):
     return {"at": stamp, "sources": sources, "items": items}
 
 def wzdx_feeds():
-    reg = get("https://data.transportation.gov/resource/69qe-yiui.json?$limit=500")
+    """WZDx feed list from the federal registry. The registry hiccups now and then (handshake timeout, reset — two failed
+    builds on 2026-10-26): then the list from the last run, so the closures still come fresh from the state feeds."""
+    try: reg = get("https://data.transportation.gov/resource/69qe-yiui.json?$limit=500")
+    except Exception as ex:
+        print("wzdx registry", ex, "— last run's feed list", file=sys.stderr)
+        return get("https://raw.githubusercontent.com/evgeniystatuev-stack/terra-live/data/wzdx-feeds.json")
     return [(r.get("state") or r.get("feedname") or "?", r["url"]["url"]) for r in reg
             if r.get("active") in (True, "true") and r.get("needapikey") not in (True, "true")
             and str(r.get("format", "")).lower().startswith("geojson") and str(r.get("version", ""))[:1] in "34"]
@@ -169,12 +174,13 @@ def main(outdir):
     with cf.ThreadPoolExecutor(12) as ex:
         c511 = ex.submit(cams511, stamp)
         for c, k in ex.map(caltrans, range(1, 13)): closures += c; cams += k
-        for c in ex.map(lambda s: wzdx(*s), wzdx_feeds()): closures += c
+        feeds = wzdx_feeds()
+        for c in ex.map(lambda s: wzdx(*s), feeds): closures += c
         c511 = c511.result()
     ok = lambda x: x["lat"] is not None and x["lon"] is not None and -90 <= x["lat"] <= 90 and -180 <= x["lon"] <= 180
     closures, cams = [x for x in closures if ok(x)], [x for x in cams + c511["items"] if ok(x)]   # one bad record must not sink the whole file
     os.makedirs(outdir, exist_ok=True)
-    for name, data in (("closures.json", {"at": stamp, "items": closures}), ("cameras.json", {"at": stamp, "items": cams}), ("cameras-511.json", c511)):
+    for name, data in (("closures.json", {"at": stamp, "items": closures}), ("cameras.json", {"at": stamp, "items": cams}), ("cameras-511.json", c511), ("wzdx-feeds.json", feeds)):
         json.dump(data, open(os.path.join(outdir, name), "w"), ensure_ascii=False, separators=(",", ":"))
     print(f"closures {len(closures)} (chain {sum(1 for x in closures if x['kind']=='chain')}), cameras {len(cams)} (511: {len(c511['items'])})")
 
