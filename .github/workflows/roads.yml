@@ -26,7 +26,8 @@ jobs:
         run: |
           cd out && git init -q -b data && git add -A
           git -c user.name=terra-live-bot -c user.email=bot@users.noreply.github.com commit -qm "roads $(date -u +%FT%TZ)"
-          git push -qf "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}" data
+          # GitHub now and then answers the push with 500 (incident 2026-11-04 09:49 UTC, 6 failed runs): retry before failing
+          for i in 1 2 3; do git push -qf "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}" data && exit 0; sleep 20; done; exit 1
   # GitHub switches off schedules after 60 days without commits on the repo: leave a weekly footprint on main
   keepalive:
     if: github.event.schedule == '0 12 * * 1'
